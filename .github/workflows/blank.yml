@@ -16,4 +16,4 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run a one-line script
-      - run: echo "last_message=${{ git log HEAD~1..HEAD --pretty=format:%s }}" >> $GITHUB_OUTPUT
+        run: echo "last_message=$(git log HEAD~1..HEAD --pretty=format:%s)" >> $GITHUB_OUTPUT
