@@ -1,15 +1,15 @@
 /**
  * @param {string} commitMessage
  * @param {Object} params
- * @param {import('octokit').Octokit} params.github -
- * @param {import('@actions/core')} params.core -
- * @param {import('@actions/github').context} params.context - The context of the current job.
+ * @param {import('octokit').Octokit} params.github
+ * @param {import('@actions/core')} params.core
+ * @param {import('@actions/github').context} params.context
  */
 module.exports = async function (commitMessage, { github, core, context }) {
   const pullRequestNumber = extractPrNumberMessage(commitMessage);
 
   if (!pullRequestNumber) {
-    core.warning("message does not contain a pull request.");
+    core.error("message does not contain a pull request.");
     return;
   }
 
@@ -21,21 +21,38 @@ module.exports = async function (commitMessage, { github, core, context }) {
     pull_number: pullRequestNumber,
   });
 
-  if (pullRequest.status !== "200") {
-    core.warning("No pull request found for #" + pullRequestNumber);
+  if (pullRequest.status !== 200) {
+    core.error("No pull request found for #" + pullRequestNumber);
     return;
   }
 
-  const cloudFunctionsServices = extractServicesList(pullRequest.data.body, {
-    title: "Cloud Function to deploy",
-  });
+  const functionServices = extractServicesList(
+    pullRequest.data.body,
+    { title: "Cloud Function to deploy" },
+    { core },
+  );
 
-  const cloudRunServices = extractServicesList(pullRequest.data.body, {
-    title: "Cloud Run to deploy",
-  });
+  const runServices = extractServicesList(
+    pullRequest.data.body,
+    { title: "Cloud Run to deploy" },
+    { core },
+  );
 
-  core.exportVariable("cr_services", cloudFunctionsServices);
-  core.exportVariable("cr_functions", cloudFunctionsServices);
+  // NOTE: ideally this shouldn't be a responsibility of this script
+  const formattedFunctionsServices = functionServices
+    .map((service) => `function:${service}`)
+    .join(",");
+
+  // NOTE: ideally this shouldn't be a responsibility of this script
+  const formattedRunServices = runServices
+    .map((service) => `${service}-cr`)
+    .join(",");
+
+  core.notice("Cloud Functions: " + formattedFunctionsServices);
+  core.notice("Cloud Runs: " + formattedRunServices);
+
+  core.setOutput("function_services", formattedFunctionsServices);
+  core.setOutput("run_services", formattedRunServices);
 };
 
 /**
@@ -56,13 +73,17 @@ function extractPrNumberMessage(message) {
 
 /**
  * @param {string} message
+ *
  * @param {Object} options
  * @param {string | null} options.title
  * @param {string} options.end
+ *
+ * @param {Object} runContext
+ * @param {import('@actions/core')} runContext.core -
  */
-function extractServicesList(message, { title = null, end = "" }) {
+function extractServicesList(message, { title = null, end = "" }, { core }) {
   if (!title) {
-    console.log("Please provide a title");
+    core.error("Please provide a title");
     return;
   }
 
@@ -100,7 +121,7 @@ function extractServicesList(message, { title = null, end = "" }) {
       if (serviceNameFormat.test(sanitizedLine)) {
         servicesList.push(sanitizedLine);
       } else {
-        console.log(`Invalid service name: ${sanitizedLine}`);
+        core.warning(`Invalid service name: ${sanitizedLine}. Excluding...`);
       }
     }
   }
