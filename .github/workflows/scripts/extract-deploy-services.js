@@ -42,8 +42,8 @@ module.exports = async function (commitMessage, { github, core, context }) {
  * @param {string} message
  */
 function extractPrNumberMessage(message) {
-  const MERGE_COMMIT_PATTERN = /Merge pull request #\d+/;
-  const SQUASH_COMMIT_PATTERN = /Squashed .+ \(#\d+\)/;
+  const MERGE_COMMIT_PATTERN = /^Merge pull request #\d+/;
+  const SQUASH_COMMIT_PATTERN = /^.+\(#\d+\)$/;
 
   if (message.match(MERGE_COMMIT_PATTERN)) {
     return /\(#(\d+)\)/.exec(message)?.[1];
