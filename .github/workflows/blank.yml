@@ -16,4 +16,4 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Get last message
-        run: echo ${{ github.event.head_commit.message }}
+        run: echo "${{ github.event.head_commit.message }}"
