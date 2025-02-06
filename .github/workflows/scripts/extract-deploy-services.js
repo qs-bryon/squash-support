@@ -42,9 +42,9 @@ function extractPrNumberMessage(message) {
   const MERGE_COMMIT_PATTERN = /Merge pull request #\d+/;
   const SQUASH_COMMIT_PATTERN = /Squashed .+ \(#\d+\)/;
 
-  if (commitMessage.match(MERGE_COMMIT_PATTERN)) {
+  if (message.match(MERGE_COMMIT_PATTERN)) {
     return /\(#(\d+)\)/.exec(message)?.[1];
-  } else if (commitMessage.match(SQUASH_COMMIT_PATTERN)) {
+  } else if (message.match(SQUASH_COMMIT_PATTERN)) {
     return /#(\d+)/.exec(message)?.[1];
   }
 
