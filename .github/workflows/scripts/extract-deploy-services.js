@@ -33,6 +33,9 @@ module.exports = async function (commitMessage, { github, core, context }) {
   const cloudRunServices = extractServicesList(pullRequest.data.body, {
     title: "Cloud Run to deploy",
   });
+
+  core.exportVariable("cr_services", cloudFunctionsServices);
+  core.exportVariable("cr_functions", cloudFunctionsServices);
 };
 
 /**

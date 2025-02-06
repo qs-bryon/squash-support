@@ -15,12 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Get last message
-        run: echo "${{ github.event.head_commit.message }}"
-
       - name: Get services
         uses: actions/github-script@v7
         with:
           script: |
             const script = require('./.github/workflows/scripts/extract-deploy-services.js');
-            console.log(script("${{ github.event.head_commit.message }}", { github, core, context }));
+            await script("${{ github.event.head_commit.message }}", { github, core, context });
