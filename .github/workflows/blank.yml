@@ -17,5 +17,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Run a one-line script
+      - name: Get last message
         run: echo "last_message=$(git log -n 1 --pretty=format:%s)" >> $GITHUB_OUTPUT
+
+      - name: echo last_message
+        run: echo ${{ steps.last_message.outputs.last_message }}
