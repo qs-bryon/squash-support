@@ -9,7 +9,7 @@ module.exports = async function (commitMessage, { github, core, context }) {
   const pullRequestNumber = extractPrNumberMessage(commitMessage);
 
   if (!pullRequestNumber) {
-    core.error("message does not contain a pull request.");
+    core.warning("message does not contain a pull request. Skipping...");
     return;
   }
 
@@ -44,9 +44,7 @@ module.exports = async function (commitMessage, { github, core, context }) {
     .join(",");
 
   // NOTE: ideally this shouldn't be a responsibility of this script
-  const formattedRunServices = runServices
-    .map((service) => `${service}-cr`)
-    .join(",");
+  const formattedRunServices = runServices.join(",");
 
   core.notice("Cloud Functions: " + formattedFunctionsServices);
   core.notice("Cloud Runs: " + formattedRunServices);
@@ -97,32 +95,32 @@ function extractServicesList(message, { title = null, end = "" }, { core }) {
     i < splitMessage.length;
     i++
   ) {
-    const line = splitMessage[i];
-
     if (passedHead && passedTail) continue;
+
+    const line = splitMessage[i];
 
     if (line.trim() === title.trim()) {
       passedHead = true;
       continue;
     }
 
+    if (!passedHead) continue;
+
     if (line.trim() === end.trim()) {
       passedTail = true;
       continue;
     }
 
-    if (passedHead) {
-      if (!line.startsWith(">")) {
-        continue;
-      }
+    if (!line.startsWith(">")) {
+      continue;
+    }
 
-      const sanitizedLine = line.replace(">", "").trim();
+    const sanitizedLine = line.replace(">", "").trim();
 
-      if (serviceNameFormat.test(sanitizedLine)) {
-        servicesList.push(sanitizedLine);
-      } else {
-        core.warning(`Invalid service name: ${sanitizedLine}. Excluding...`);
-      }
+    if (serviceNameFormat.test(sanitizedLine)) {
+      servicesList.push(sanitizedLine);
+    } else {
+      core.warning(`Invalid service name: ${sanitizedLine}. Excluding...`);
     }
   }
 
