@@ -1,4 +1,4 @@
-name: CI
+name: To staging
 
 on:
   pull_request:
@@ -17,9 +17,8 @@ jobs:
   find-what-to-deploy:
     runs-on: ubuntu-latest
     needs: if-is-merged-pr
-    if: ${{ steps.is_pr_merge.outputs.is_pr_merge == 'true' }}
+    if: ${{ jobs.is_pr_merge.outputs.is_pr_merge == 'true' }}
     permissions: read-all
-
     steps:
       - uses: actions/checkout@v4
 
