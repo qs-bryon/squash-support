@@ -12,7 +12,8 @@ jobs:
     outputs:
       is_pr_merge: ${{ steps.is_pr_merge.outputs.is_pr_merge }}
     steps:
-      - run: echo "is_pr_merge=true" >> $GITHUB_OUTPUT
+      - id: is_pr_merge
+        run: echo "is_pr_merge=true" >> $GITHUB_OUTPUT
 
   find-what-to-deploy:
     runs-on: ubuntu-latest
