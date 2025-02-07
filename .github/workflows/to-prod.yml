@@ -17,8 +17,8 @@ jobs:
 
   find-what-to-deploy:
     runs-on: ubuntu-latest
-    # needs: if-is-merged-pr
-    # if: needs.if-is-merged-pr.outputs.is_pr_merge == 'true'
+    needs: if-is-merged-pr
+    if: needs.if-is-merged-pr.outputs.is_pr_merge == 'true'
     permissions: read-all
     outputs:
       run_services: ${{ steps.get_services.outputs.run_services }}
@@ -29,7 +29,7 @@ jobs:
           fetch-depth: 0
 
       - id: get_commits
-        run: echo "commits=$(git log --oneline ${{ github.ref }}..HEAD)" >> $GITHUB_OUTPUT
+        run: echo "commits=$(git log --oneline ${{ github.base_ref }}..HEAD)" >> $GITHUB_OUTPUT
 
       - name: Get services to deploy
         uses: actions/github-script@v7
