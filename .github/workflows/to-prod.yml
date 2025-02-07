@@ -16,9 +16,4 @@ jobs:
         with:
           fetch-depth: 0
 
-      - id: get_merged_commit
-        run: echo "commits=$(git log HEAD~1..HEAD --oneline)" >> $GITHUB_OUTPUT
-
-      - run: echo ${{ steps.get_merged_commit.outputs.commits }}
-
       - run: echo ${{ toJson(github) }}
