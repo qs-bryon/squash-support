@@ -39,8 +39,10 @@ jobs:
       function_services: ${{ steps.get_services.outputs.function_services }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - run: git checkout origin/staging
+      - run: git fetch origin staging
 
       - id: get_branches
         run: git branch
