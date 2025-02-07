@@ -39,14 +39,14 @@ jobs:
       function_services: ${{ steps.get_services.outputs.function_services }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+
+      - run: git checkout origin/staging
 
       - id: get_branches
         run: git branch
 
       - id: get_commits
-        run: echo "commits=$(git log --oneline refs/heads/${{ github.head_ref }}..HEAD)" >> $GITHUB_OUTPUT
+        run: echo "commits=$(git log --oneline staging..HEAD)" >> $GITHUB_OUTPUT
 
       - name: Get services to deploy
         uses: actions/github-script@v7
