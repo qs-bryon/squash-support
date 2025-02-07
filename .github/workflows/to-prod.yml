@@ -43,7 +43,10 @@ jobs:
           fetch-depth: 0
 
       - id: get_commits
-        run: echo "commits=\"$(git log --oneline origin/staging..HEAD)\"" >> $GITHUB_OUTPUT
+        run: |
+          echo 'commits<<EOF' >> $GITHUB_OUTPUT
+          git log --oneline origin/staging..HEAD >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
 
       - name: Get services to deploy
         uses: actions/github-script@v7
@@ -51,6 +54,4 @@ jobs:
           commits: ${{ steps.get_commits.outputs.commits }}
         with:
           script: |
-            const commits = process.env.commits;
-
             console.log(process.env.commits);
