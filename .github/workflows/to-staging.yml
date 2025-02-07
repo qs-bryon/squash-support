@@ -1,20 +1,86 @@
-name: To staging
+name: CI
 
 on:
-  push:
+  pull_request:
     branches: ["staging"]
+    types: ["closed"]
 
 jobs:
+  if-is-merged-pr:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    outputs:
+      is_pr_merge: ${{ steps.is_pr_merge.outputs.is_pr_merge }}
+    steps:
+      - run: echo "is_pr_merge=true" >> $GITHUB_OUTPUT
+
   find-what-to-deploy:
     runs-on: ubuntu-latest
+    needs: if-is-merged-pr
+    if: ${{ steps.is_pr_merge.outputs.is_pr_merge == 'true' }}
     permissions: read-all
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get services to deploy
+        id: get_services
+        uses: actions/github-script@v7
         with:
-          fetch-depth: 0
+          script: |
+            const script = require('./.github/workflows/scripts/extract-pull-request-services.js');
+            await script({ github, core, context });
 
-      - id: get_merged_commit
-        run: echo "commits=$(git log HEAD~1..HEAD --oneline)" >> $GITHUB_OUTPUT
+  # deploy-cloud-functions:
+  #   runs-on: ubuntu-latest
+  #   needs: find-what-to-deploy
+  #   if: needs.find-what-to-deploy.outputs.function_services != ''
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Deploy Cloud Functions
+  #       run: |
+  #         echo "Deploying Cloud Functions: ${{ needs.find-what-to-deploy.outputs.function_services }}"
+  #
+  # deploy-cloud-run:
+  #   runs-on: ubuntu-latest
+  #   needs: find-what-to-deploy
+  #   if: needs.find-what-to-deploy.outputs.run_services != ''
 
-      - run: echo ${{ steps.get_merged_commit.outputs.commits }}
+  # find-what-to-deploy:
+  #   runs-on: ubuntu-latest
+  #   permissions: read-all
+  #   outputs:
+  #     run_services: ${{ steps.get_services.outputs.run_services }}
+  #     function_services: ${{ steps.get_services.outputs.function_services }}
+  #
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #
+  #     - name: Get services to deploy
+  #       id: get_services
+  #       uses: actions/github-script@v7
+  #       with:
+  #         script: |
+  #           const script = require('./.github/workflows/scripts/extract-deploy-services.js');
+  #           const onlyFirstCommitLine = `${{ github.event.head_commit.message }}`.split('\n')[0];
+  #           await script(onlyFirstCommitLine, { github, core, context });
+  #
+  # deploy-cloud-functions:
+  #   runs-on: ubuntu-latest
+  #   needs: find-what-to-deploy
+  #   if: needs.find-what-to-deploy.outputs.function_services != ''
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Deploy Cloud Functions
+  #       run: |
+  #         echo "Deploying Cloud Functions: ${{ needs.find-what-to-deploy.outputs.function_services }}"
+  #
+  # deploy-cloud-run:
+  #   runs-on: ubuntu-latest
+  #   needs: find-what-to-deploy
+  #   if: needs.find-what-to-deploy.outputs.run_services != ''
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Deploy Cloud Run
+  #       run: |
+  #         echo "Deploying Cloud Run: ${{ needs.find-what-to-deploy.outputs.run_services }}"
