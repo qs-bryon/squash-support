@@ -1,0 +1,12 @@
+{
+  "number": 14,
+  "pull_request": {
+    "merged": true,
+    "head": {
+      "ref": "staging"
+    },
+    "base": {
+      "ref": "main"
+    }
+  }
+}
