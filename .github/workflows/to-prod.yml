@@ -44,10 +44,8 @@ jobs:
 
       - id: get_commits
         run: |
-          COMMITS=$(git diff --oneline ${{ github.event.pull_request.base.sha }}..HEAD)
-
           echo 'commits<<EOF' >> $GITHUB_OUTPUT
-          echo $COMMITS >> $GITHUB_OUTPUT
+          echo "$(git diff --oneline ${{ github.event.pull_request.base.sha }}..HEAD)" >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
 
       - name: Get services to deploy
