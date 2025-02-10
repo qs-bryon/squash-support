@@ -54,6 +54,5 @@ jobs:
           commits: ${{ steps.get_commits.outputs.commits }}
         with:
           script: |
-            core.info(process.env.commits?.split('\n'));
             const script = require('./.github/workflows/scripts/extract-pull-requests.js');
             await script(process.env.commits, { github, core, context });
