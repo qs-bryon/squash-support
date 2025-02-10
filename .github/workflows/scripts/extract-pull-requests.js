@@ -40,20 +40,20 @@ module.exports = async (commitLogs, { github, core, context }) => {
       continue;
     }
 
-    const functionServices = extractServicesList(
+    const extractedFunctions = extractServicesList(
       pullRequest.data.body,
       { title: "Cloud Function to deploy" },
       { core },
     );
 
-    const runServices = extractServicesList(
+    const extractRuns = extractServicesList(
       pullRequest.data.body,
       { title: "Cloud Run to deploy" },
       { core },
     );
 
-    functionServices.forEach((service) => acc.functions.add(service));
-    runServices.forEach((service) => acc.runs.add(service));
+    extractedFunctions.forEach((service) => functionServices.add(service));
+    extractRuns.forEach((service) => runServices.add(service));
   }
 
   const formattedFunctionsServices = [...functionServices]
