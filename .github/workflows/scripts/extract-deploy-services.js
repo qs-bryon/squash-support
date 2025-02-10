@@ -9,6 +9,10 @@ const SQUASH_COMMIT_PATTERN = /^.+\(#\d+\)$/;
  * @param {import('@actions/github').context} params.context
  */
 module.exports = async (commitLogs, { github, core, context }) => {
+  core.info(typeof commitLogs);
+  core.info(JSON.stringify(commitLogs));
+  core.info(commitLogs.length);
+
   /** @type {string[]} */
   const pullRequestCommits = commitLogs
     .split("\n")
