@@ -97,13 +97,10 @@ function extractPrNumberMessage(message) {
  */
 function extractServicesList(message, { title = null, end = "" }, { core }) {
   if (!title) {
-    core.error("Please provide a title");
-    return "";
+    throw new Error("Please provide a title");
   }
 
-  if (!message) {
-    return "";
-  }
+  if (!message) return [];
 
   const splitMessage = message.split("\r\n");
 
