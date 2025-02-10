@@ -10,7 +10,3 @@ hello world world
 6asdasd
 6asdasd
 7
-
-| test  | Column1 |
-| ----- | ------- |
-| Item1 | Item2   |
