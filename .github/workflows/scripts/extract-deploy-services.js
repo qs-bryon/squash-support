@@ -9,6 +9,7 @@ const SQUASH_COMMIT_PATTERN = /^.+\(#\d+\)$/;
  * @param {import('@actions/github').context} params.context
  */
 module.exports = async (commitLogs, { github, core, context }) => {
+  /** @type {string[]} */
   const pullRequestCommits = commitLogs
     .split("\n")
     .filter(
@@ -78,9 +79,9 @@ function extractPrNumberMessage(message) {
   const SQUASH_COMMIT_PATTERN = /^.+\(#\d+\)$/;
 
   if (message.match(MERGE_COMMIT_PATTERN)) {
-    return /\(#(\d+)\)/.exec(message)?.[1];
-  } else if (message.match(SQUASH_COMMIT_PATTERN)) {
     return /#(\d+)/.exec(message)?.[1];
+  } else if (message.match(SQUASH_COMMIT_PATTERN)) {
+    return /\(#(\d+)\)/.exec(message)?.[1];
   }
 
   return undefined;
