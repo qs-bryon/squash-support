@@ -1,3 +1,6 @@
+const MERGE_COMMIT_PATTERN = /^Merge pull request #\d+/;
+const SQUASH_COMMIT_PATTERN = /^.+\(#\d+\)$/;
+
 /**
  * @param {string} commitMessage
  * @param {Object} params
@@ -5,45 +8,59 @@
  * @param {import('@actions/core')} params.core
  * @param {import('@actions/github').context} params.context
  */
-module.exports = async function (commitMessage, { github, core, context }) {
-  const pullRequestNumber = extractPrNumberMessage(commitMessage);
+module.exports = async (commitLogs, { github, core, context }) => {
+  const pullRequestCommits = commitLogs
+    .split("\n")
+    .filter(
+      (v) => MERGE_COMMIT_PATTERN.test(v) || SQUASH_COMMIT_PATTERN.test(v),
+    );
 
-  if (!pullRequestNumber) {
-    core.warning("message does not contain a pull request. Skipping...");
-    return;
-  }
+  const { functionServices, runServices } = pullRequestCommits.reduce(
+    async (acc, commit) => {
+      const pullRequestNumber = extractPrNumberMessage(commit);
 
-  core.info("Attempting to query pull request #" + pullRequestNumber);
+      if (!pullRequestNumber) {
+        core.warning("message does not contain a pull request. Skipping...");
+        return;
+      }
 
-  const pullRequest = await github.rest.pulls.get({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    pull_number: pullRequestNumber,
-  });
+      core.info("Attempting to query pull request #" + pullRequestNumber);
 
-  if (pullRequest.status !== 200) {
-    core.error("No pull request found for #" + pullRequestNumber);
-    return;
-  }
+      const pullRequest = await github.rest.pulls.get({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        pull_number: pullRequestNumber,
+      });
 
-  const functionServices = extractServicesList(
-    pullRequest.data.body,
-    { title: "Cloud Function to deploy" },
-    { core },
+      if (pullRequest.status !== 200) {
+        core.error("No pull request found for #" + pullRequestNumber);
+        return;
+      }
+
+      const functionServices = extractServicesList(
+        pullRequest.data.body,
+        { title: "Cloud Function to deploy" },
+        { core },
+      );
+
+      const runServices = extractServicesList(
+        pullRequest.data.body,
+        { title: "Cloud Run to deploy" },
+        { core },
+      );
+
+      functionServices.forEach((service) => acc.functions.add(service));
+      runServices.forEach((service) => acc.runs.add(service));
+
+      return acc;
+    },
+    { functionServices: new Set(), runServices: new Set() },
   );
 
-  const runServices = extractServicesList(
-    pullRequest.data.body,
-    { title: "Cloud Run to deploy" },
-    { core },
-  );
-
-  // NOTE: ideally this shouldn't be a responsibility of this script
   const formattedFunctionsServices = functionServices
     .map((service) => `function:${service}`)
     .join(",");
 
-  // NOTE: ideally this shouldn't be a responsibility of this script
   const formattedRunServices = runServices.join(",");
 
   core.notice("Cloud Functions: " + formattedFunctionsServices);
