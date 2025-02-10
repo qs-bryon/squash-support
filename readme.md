@@ -9,10 +9,6 @@ hello world world
 6asdasd
 6asdasd
 6asdasd
-6asdasd
-6asdasd
-6asdasd
-6asdasd
 7
 8
 pasdfasdf
