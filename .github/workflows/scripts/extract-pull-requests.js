@@ -56,11 +56,11 @@ module.exports = async (commitLogs, { github, core, context }) => {
     runServices.forEach((service) => acc.runs.add(service));
   }
 
-  const formattedFunctionsServices = functionServices
+  const formattedFunctionsServices = [...functionServices]
     .map((service) => `function:${service}`)
     .join(",");
 
-  const formattedRunServices = runServices.join(",");
+  const formattedRunServices = [...runServices].join(",");
 
   core.notice("Cloud Functions: " + formattedFunctionsServices);
   core.notice("Cloud Runs: " + formattedRunServices);
