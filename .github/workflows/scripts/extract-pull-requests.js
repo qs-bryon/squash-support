@@ -16,47 +16,45 @@ module.exports = async (commitLogs, { github, core, context }) => {
       (v) => MERGE_COMMIT_PATTERN.test(v) || SQUASH_COMMIT_PATTERN.test(v),
     );
 
-  const { functionServices, runServices } = pullRequestCommits.reduce(
-    async (acc, commit) => {
-      const pullRequestNumber = extractPrNumberMessage(commit);
+  const functionServices = new Set();
+  const runServices = new Set();
 
-      if (!pullRequestNumber) {
-        core.warning("message does not contain a pull request. Skipping...");
-        return;
-      }
+  for (const commit of pullRequestCommits) {
+    const pullRequestNumber = extractPrNumberMessage(commit);
 
-      core.info("Attempting to query pull request #" + pullRequestNumber);
+    if (!pullRequestNumber) {
+      core.warning("message does not contain a pull request. Skipping...");
+      continue;
+    }
 
-      const pullRequest = await github.rest.pulls.get({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        pull_number: pullRequestNumber,
-      });
+    core.info("Attempting to query pull request #" + pullRequestNumber);
 
-      if (pullRequest.status !== 200) {
-        core.error("No pull request found for #" + pullRequestNumber);
-        return;
-      }
+    const pullRequest = await github.rest.pulls.get({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      pull_number: pullRequestNumber,
+    });
 
-      const functionServices = extractServicesList(
-        pullRequest.data.body,
-        { title: "Cloud Function to deploy" },
-        { core },
-      );
+    if (pullRequest.status !== 200) {
+      core.error("No pull request found for #" + pullRequestNumber);
+      continue;
+    }
 
-      const runServices = extractServicesList(
-        pullRequest.data.body,
-        { title: "Cloud Run to deploy" },
-        { core },
-      );
+    const functionServices = extractServicesList(
+      pullRequest.data.body,
+      { title: "Cloud Function to deploy" },
+      { core },
+    );
 
-      functionServices.forEach((service) => acc.functions.add(service));
-      runServices.forEach((service) => acc.runs.add(service));
+    const runServices = extractServicesList(
+      pullRequest.data.body,
+      { title: "Cloud Run to deploy" },
+      { core },
+    );
 
-      return acc;
-    },
-    { functionServices: new Set(), runServices: new Set() },
-  );
+    functionServices.forEach((service) => acc.functions.add(service));
+    runServices.forEach((service) => acc.runs.add(service));
+  }
 
   const formattedFunctionsServices = functionServices
     .map((service) => `function:${service}`)
